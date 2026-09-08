@@ -1,330 +1,184 @@
 # Business Process Automation
 
-A Python-based automation project for processing structured business data from Excel files and generating organized Excel output automatically.
+## Overview
 
-This project demonstrates an automated Excel data-processing workflow using Python and Pandas, along with automated testing using Pytest.
+This project is a Python-based business process automation solution designed to automate repetitive data-processing and document-generation tasks.
 
-> **Note:** This repository is a sanitized version of a real-world business automation workflow. No confidential company, client, customer, vendor, financial, or proprietary information is included.
+The current workflow automates the conversion of structured Excel data into organized Excel worksheets and subsequently generates separate PDF documents from those worksheets.
 
----
-
-## Project Overview
-
-The current functionality reads data from an Excel file, groups records according to the `Item Cd` column, and generates a separate worksheet for each Item Code.
-
-### Main workflow
-
-1. Read the Excel input file.
-2. Load the data into a Pandas DataFrame.
-3. Group records using the `Item Cd` column.
-4. Process each Item Code group.
-5. Clean the Item Code for use as an Excel worksheet name.
-6. Create a separate worksheet for each Item Code.
-7. Write the corresponding records to the worksheet.
-8. Generate an output Excel workbook.
-9. Validate the application using automated tests.
+The project is designed with a modular approach so that additional business automation processes can be added in the future.
 
 ---
 
-## Processing Flow
+## Current Automation Workflow
 
 ```text
-Excel Input
-     |
-     v
-Read Excel File
-     |
-     v
-Pandas DataFrame
-     |
-     v
-Group by "Item Cd"
-     |
-     v
-Process Each Group
-     |
-     v
-Clean Item Code
-     |
-     v
-Create Worksheet
-     |
-     v
-Write Group Data
-     |
-     v
-Output Excel Workbook
-     |
-     v
-Pytest Validation
+Input Excel File
+       │
+       ▼
+Excel Data Processing
+       │
+       ▼
+Group Data by Item Code
+       │
+       ▼
+Separate Excel Worksheets
+       │
+       ▼
+PDF Generation
+       │
+       ▼
+Separate PDF Files
 ```
 
 ---
 
-## Technologies Used
+# 1. Excel Data Separation
+
+### File
+
+```text
+1_invoice_generator.py
+```
+
+### Purpose
+
+The first automation processes an Excel input file and separates the data based on the `Item Cd` column.
+
+Instead of manually filtering and copying data into multiple worksheets, the program automatically:
+
+1. Reads the input Excel file.
+2. Identifies the `Item Cd` column.
+3. Groups records according to the item code.
+4. Cleans the item code so it can safely be used in an Excel worksheet name.
+5. Creates a separate worksheet for each item code.
+6. Writes the corresponding records into the worksheet.
+7. Generates an output Excel file.
+
+### Example
+
+The actual company Excel data is **not included in this repository**.
+
+For demonstration purposes, the process can be represented as:
+
+```text
+Input:
+
+Item Cd     Item Description     Quantity
+A100        Product A            10
+B200        Product B            20
+A100        Product A            15
+C300        Product C            5
+```
+
+The automation produces:
+
+```text
+output_invoice.xlsx
+
+├── Part_no_A100
+├── Part_no_B200
+└── Part_no_C300
+```
+
+Each worksheet contains only the records belonging to that item code.
+
+---
+
+# 2. Separate PDF Generation
+
+### File
+
+```text
+2_separate_pdf_generator.py
+```
+
+### Purpose
+
+The second automation takes the generated Excel workbook and creates a separate PDF document for each worksheet.
+
+The program automatically:
+
+1. Reads the generated Excel workbook.
+2. Identifies all worksheets.
+3. Reads each worksheet into a Pandas DataFrame.
+4. Extracts the item code and item description.
+5. Creates a PDF document.
+6. Adds the worksheet data to the PDF.
+7. Uses landscape A4 page formatting.
+8. Creates a date-based output directory.
+9. Saves each generated PDF separately.
+
+### Output Structure
+
+The actual company output is not included in this repository.
+
+The generated structure is conceptually:
+
+```text
+invoice_pdf_YYYY-MM-DD/
+
+├── ITEM_CODE_ITEM_DESCRIPTION.pdf
+├── ITEM_CODE_ITEM_DESCRIPTION.pdf
+└── ITEM_CODE_ITEM_DESCRIPTION.pdf
+```
+
+The actual company item codes, descriptions, filenames and business data are intentionally excluded.
+
+---
+
+# Technologies Used
 
 * Python
 * Pandas
+* OpenPyXL / Excel processing
 * XlsxWriter
-* Excel
+* ReportLab
 * Pytest
 * Git
 * GitHub
 
 ---
 
-## Project Structure
+# Project Structure
 
 ```text
 business-process-automation/
-|
-├── invoice_generator.py
+│
+├── 1_invoice_generator.py
+│
+├── 2_separate_pdf_generator.py
+│
 ├── test_1_invoice_generator.py
-├── requirements.txt
+│
+├── test_2_separate_pdf_generator.py
+│
 ├── README.md
-└── .gitignore
+│
+├── .gitignore
+│
+└── requirements.txt
 ```
 
-Sample or confidential Excel files are intentionally excluded from the public repository.
+> Actual company Excel files, generated PDFs and other confidential files should not be committed to the repository.
 
 ---
 
-## Input Data
+# Requirements
 
-The application expects an Excel file containing an `Item Cd` column.
+Python 3.12 or compatible Python 3 version.
 
-A typical business dataset may contain fields such as:
-
-| Field            | Description              |
-| ---------------- | ------------------------ |
-| Invoice No.      | Invoice reference        |
-| Date             | Transaction date         |
-| Item Cd          | Item or product code     |
-| Item Description | Description of the item  |
-| PO No            | Purchase order reference |
-| Quantity         | Quantity of the item     |
-
-For public demonstration, use only fictional/sample data.
-
-Example:
-
-| Invoice No. | Date       | Item Cd | Item Description | PO No | Quantity |
-| ----------- | ---------- | ------- | ---------------- | ----- | -------: |
-| INV001      | 01-01-2026 | ITEM001 | Sample Item      | PO001 |       10 |
-| INV002      | 02-01-2026 | ITEM002 | Sample Item      | PO002 |       20 |
-| INV003      | 03-01-2026 | ITEM001 | Sample Item      | PO003 |        5 |
-
----
-
-## How the Code Works
-
-### 1. Import libraries
-
-```python
-import pandas as pd
-import os
-```
-
-* `pandas` is used for reading and processing Excel data.
-* `os` is used for working with file and directory paths.
-
-### 2. Get the current directory
-
-```python
-cd_path = os.getcwd()
-```
-
-Gets the current working directory of the application.
-
-### 3. Create file paths
-
-```python
-input_file_path = os.path.join(cd_path, "Book1.xlsx")
-output_file_path = os.path.join(cd_path, "output_invoice.xlsx")
-```
-
-`os.path.join()` combines the directory path with the filename.
-
-This avoids manually constructing operating-system-specific paths.
-
-### 4. Read the Excel file
-
-```python
-df = pd.read_excel(input_file_path)
-```
-
-Pandas reads the Excel file and stores the data in the DataFrame `df`.
-
-### 5. Group the data
-
-```python
-grouped = df.groupby('Item Cd')
-```
-
-The data is divided into groups based on the `Item Cd` column.
-
-For example:
+Required packages include:
 
 ```text
-ITEM001
-ITEM001
-ITEM002
-ITEM002
-ITEM003
+pandas
+xlsxwriter
+openpyxl
+reportlab
+pytest
 ```
 
-creates separate groups for:
-
-```text
-ITEM001
-ITEM002
-ITEM003
-```
-
-### 6. Create the output workbook
-
-```python
-with pd.ExcelWriter(output_file_path, engine='xlsxwriter') as writer:
-```
-
-Creates an Excel writer that will generate the output workbook.
-
-### 7. Process every group
-
-```python
-for invoice_no, group in grouped:
-```
-
-The first variable contains the group key, which in this implementation is the `Item Cd` value.
-
-The second variable contains all rows belonging to that Item Code.
-
-### 8. Clean the Item Code
-
-```python
-cleaned_invoice_no = ''.join(
-    c for c in str(invoice_no)
-    if c.isalnum() or c in ['-', '_', ' ']
-)
-```
-
-This creates a cleaned version of the Item Code containing:
-
-* Letters
-* Numbers
-* `-`
-* `_`
-* Spaces
-
-Characters outside these allowed characters are removed from the value used for the worksheet name.
-
-For example:
-
-```text
-ITEM#001
-```
-
-can become:
-
-```text
-ITEM001
-```
-
-The cleaning is used for the worksheet name; it does not modify the original `Item Cd` value stored in the data.
-
-### 9. Create the worksheet
-
-```python
-if cleaned_invoice_no and cleaned_invoice_no not in writer.sheets:
-    group.to_excel(
-        writer,
-        sheet_name=f'Part_no_{cleaned_invoice_no}',
-        index=False
-    )
-```
-
-A separate worksheet is created for each valid Item Code group.
-
-Example:
-
-```text
-Part_no_ITEM001
-Part_no_ITEM002
-Part_no_ITEM003
-```
-
----
-
-## Output
-
-The application generates an Excel workbook containing separate worksheets for the different Item Codes.
-
-Example:
-
-```text
-output_invoice.xlsx
-|
-├── Part_no_ITEM001
-├── Part_no_ITEM002
-└── Part_no_ITEM003
-```
-
-Each worksheet contains the records belonging to its corresponding Item Code.
-
----
-
-## Testing
-
-The project includes automated tests using **Pytest**.
-
-The tests verify areas such as:
-
-* Input file availability
-* Excel file readability
-* Required columns
-* Input data availability
-* Program execution
-* Output file creation
-* Output workbook readability
-* Worksheet creation
-* Worksheet naming
-* Special-character handling
-* Output columns
-* Output data
-* Item Code grouping
-* Data preservation
-* Output row counts
-* Expected worksheet generation
-
-Run the tests with:
-
-```bash
-pytest -v
-```
-
-Run the specific test file with:
-
-```bash
-pytest -v test_1_invoice_generator.py
-```
-
----
-
-## Installation
-
-Create a virtual environment:
-
-```bash
-python3 -m venv venv
-```
-
-Activate the virtual environment on Linux:
-
-```bash
-source venv/bin/activate
-```
-
-Install the required dependencies:
+Install dependencies using:
 
 ```bash
 pip install -r requirements.txt
@@ -332,159 +186,272 @@ pip install -r requirements.txt
 
 ---
 
-## Requirements
+# Quick Start
 
-The basic dependencies are:
+## 1. Clone the repository
 
-```text
-pandas
-xlsxwriter
-pytest
+```bash
+git clone <repository-url>
 ```
 
-These can be stored in:
+Move into the project directory:
 
-```text
-requirements.txt
+```bash
+cd business-process-automation
 ```
 
 ---
 
-## Running the Application
-
-Place a suitable sample Excel input file in the project directory.
-
-The application expects:
-
-```text
-Book1.xlsx
-```
-
-Run:
+## 2. Create a virtual environment
 
 ```bash
-python invoice_generator.py
+python3 -m venv venv
 ```
 
-The output workbook will be generated as:
+Activate it on Linux/macOS:
 
-```text
-output_invoice.xlsx
+```bash
+source venv/bin/activate
+```
+
+On Windows:
+
+```bash
+venv\Scripts\activate
 ```
 
 ---
 
-## Running Tests
-
-Run all tests:
+## 3. Install dependencies
 
 ```bash
-pytest -v
-```
-
-Run only the invoice generator tests:
-
-```bash
-pytest -v test_1_invoice_generator.py
+pip install -r requirements.txt
 ```
 
 ---
 
-## Data Privacy and Security
+## 4. Provide test/demo input
 
-This repository is intended for public demonstration and should not contain confidential information.
+Use a **dummy or sanitized Excel file** for development and demonstration.
 
-The following information must not be committed to a public repository:
+Do not upload the original company Excel file if it contains:
 
-* Client or company names
 * Customer information
-* Vendor information
-* Real invoice records
-* Real purchase order information
-* Financial information
+* Supplier information
 * Employee information
-* Internal URLs
-* Internal server addresses
-* Database credentials
-* Passwords
-* API keys
-* Access tokens
-* Private certificates
-* Proprietary configuration
-* Confidential business data
-
-Real company Excel files should not be uploaded.
-
-Use fictional or sanitized data for demonstrations.
+* Internal item codes
+* Pricing information
+* Business-sensitive data
+* Confidential transaction information
+* Internal company identifiers
 
 ---
 
-## `.gitignore`
+## 5. Run Excel automation
 
-The project uses `.gitignore` to prevent accidental tracking of confidential or unnecessary files.
+```bash
+python 1_invoice_generator.py
+```
 
-Important examples include:
+This generates the processed Excel workbook.
+
+---
+
+## 6. Run PDF automation
+
+After the required Excel output has been generated:
+
+```bash
+python 2_separate_pdf_generator.py
+```
+
+This generates the separate PDF documents.
+
+---
+
+# Unit Testing
+
+The project uses **Pytest** for automated testing.
+
+Two test files are currently included:
 
 ```text
+test_1_invoice_generator.py
+test_2_separate_pdf_generator.py
+```
+
+## Run all tests
+
+```bash
+python -m pytest -v
+```
+
+## Run Excel automation tests
+
+```bash
+python -m pytest -v test_1_invoice_generator.py
+```
+
+## Run PDF automation tests
+
+```bash
+python -m pytest -v test_2_separate_pdf_generator.py
+```
+
+---
+
+# Testing Approach
+
+The tests verify important parts of the automation workflow.
+
+### Excel Automation
+
+Tests include checks for:
+
+* Input Excel file availability
+* Excel file readability
+* Required columns
+* Valid input data
+* Program execution
+* Output workbook generation
+* Output worksheets
+* Worksheet data
+
+### PDF Automation
+
+Tests include checks for:
+
+* Input Excel availability
+* Excel workbook readability
+* Worksheet availability
+* Required columns
+* Program execution
+* PDF output directory creation
+* PDF file generation
+* PDF file validity
+* Number of generated PDFs
+
+---
+
+# Data Privacy and Security
+
+This repository is intended to contain **source code and sanitized demonstration data only**.
+
+The following information should not be committed to a public repository:
+
+```text
+❌ Real company name
+❌ Client name
+❌ Customer information
+❌ Supplier information
+❌ Employee information
+❌ Real invoices
+❌ Real pricing
+❌ Real transaction records
+❌ Confidential item codes
+❌ Internal file paths
+❌ Credentials
+❌ API keys
+❌ Passwords
+❌ Access tokens
+❌ Private configuration files
+```
+
+Use:
+
+```text
+✓ Dummy data
+✓ Sanitized examples
+✓ Generic filenames
+✓ Environment variables for secrets
+✓ .gitignore for local/company files
+```
+
+---
+
+# Files That Should Not Be Committed
+
+The following types of files should normally remain outside the public repository:
+
+```text
+*.xlsx
+*.xls
+*.xlsm
+*.pdf
+
 .env
+*.key
+*.pem
+
 venv/
 __pycache__/
 .pytest_cache/
-*.xlsx
-*.xls
-*.csv
+.hypothesis/
+
+output/
+logs/
 ```
 
-This helps prevent real business data, environment files, virtual environments, and temporary files from being committed accidentally.
+The `.gitignore` file should be configured according to the actual project requirements.
 
 ---
 
-## Purpose
+# Development Workflow
 
-The purpose of this project is to automate repetitive Excel-based business data processing.
+A typical development workflow is:
 
-The automation can help:
-
-* Reduce manual Excel operations
-* Improve consistency
-* Reduce repetitive work
-* Minimize manual processing errors
-* Generate structured output
-* Make the process repeatable
-* Validate functionality through automated testing
-
----
-
-## Future Improvements
-
-Potential improvements include:
-
-* Convert the script into reusable functions
-* Add input validation
-* Add error handling
-* Add logging
-* Support configurable input and output paths
-* Handle empty input files
-* Handle missing columns
-* Add more comprehensive unit tests
-* Add GitHub Actions for automated testing
-* Support multiple input files
-* Generate processing reports
-* Add command-line arguments
-* Improve project modularity
+```text
+1. Receive / prepare sanitized input
+             │
+             ▼
+2. Process Excel data
+             │
+             ▼
+3. Generate structured Excel output
+             │
+             ▼
+4. Generate PDF documents
+             │
+             ▼
+5. Run unit tests
+             │
+             ▼
+6. Review generated output
+             │
+             ▼
+7. Commit source-code changes
+             │
+             ▼
+8. Push approved code to GitHub
+```
 
 ---
 
-## Project Status
+# Future Improvements
 
-The current version implements Excel-based data processing, grouping by Item Code, worksheet generation, and automated testing.
+The project can be extended with additional automation modules such as:
 
-Additional business automation modules can be added to this repository as the project evolves.
+* Automated email generation
+* Automated email attachments
+* PDF validation
+* Input data validation
+* Error logging
+* Configuration management
+* Database integration
+* REST API integration
+* Automated report generation
+* Scheduled processing
+* Improved exception handling
+* Production logging
+* Centralized configuration
+* Automated deployment
 
 ---
 
-## Disclaimer
+# Important Note
 
-This public repository contains a sanitized implementation intended for demonstration and learning purposes.
+This repository contains a generalized representation of a business automation workflow.
 
-No confidential client or company information should be included in this repository.
+Actual company-specific implementation details, business rules, confidential data, customer information and internal documents are intentionally excluded for security and confidentiality reasons.
+
+The repository demonstrates the **technical approach and automation capability**, rather than exposing proprietary company information.
