@@ -127,6 +127,196 @@ The actual company item codes, descriptions, filenames and business data are int
 
 ---
 
+# 3. Box Tag PDF Generation and PDF Merging
+
+### File
+
+```text
+box_tag_generator.py
+```
+
+### Purpose
+
+The third automation processes box-wise data from a CSV file and generates a separate PDF box tag for each `Box_no`.
+
+The program automatically:
+
+1. Reads the input CSV file.
+2. Groups the data using the `Box_no` column.
+3. Creates a separate PDF for each box.
+4. Adds the required part information to the PDF.
+5. Adds a verification field to the generated box tag.
+6. Uses landscape A4 page formatting.
+7. Creates an output directory for the generated PDFs.
+8. Generates PDF filenames based on the box number.
+9. Merges all generated box PDFs into one PDF file.
+10. Sorts the box PDFs numerically before merging.
+
+### Input Data
+
+The actual company CSV file is **not included in this repository**.
+
+For demonstration purposes, the input structure can be represented as:
+
+```text
+Box_no    Part_name       Drg_no       Quantity    Dispatched_date
+101       Sample Part A   DRG-001      10          2026-09-01
+101       Sample Part B   DRG-002      5           2026-09-01
+102       Sample Part C   DRG-003      8           2026-09-02
+103       Sample Part D   DRG-004      12          2026-09-03
+```
+
+The values above are **dummy data only** and do not represent actual company information.
+
+---
+
+## PDF Generation
+
+For every unique `Box_no`, the program creates a separate PDF.
+
+Conceptually:
+
+```text
+input.csv
+    │
+    ▼
+Group by Box_no
+    │
+    ├── Box 101 → 101.pdf
+    ├── Box 102 → 102.pdf
+    └── Box 103 → 103.pdf
+```
+
+Each generated PDF contains information such as:
+
+```text
+Box No: 101
+
+Part_name | Drg_no | Quantity | Dispatched_date | Verified By
+```
+
+The generated PDFs are stored inside:
+
+```text
+pdf_output_1/
+```
+
+The actual output directory name may vary depending on the version of the automation being used.
+
+---
+
+## PDF Merging
+
+The `merge_pdf()` functionality combines the individual box PDFs into a single PDF.
+
+Before merging, the program:
+
+1. Finds PDF files in the output directory.
+2. Selects PDFs whose filenames contain numeric box numbers.
+3. Ignores non-numeric PDF filenames.
+4. Sorts the PDFs according to their numeric box number.
+5. Appends the PDFs in that order.
+6. Creates a final merged PDF.
+
+Example:
+
+```text
+Individual PDFs:
+
+103.pdf
+101.pdf
+102.pdf
+105.pdf
+104.pdf
+
+        │
+        ▼
+
+Numeric sorting:
+
+101.pdf
+102.pdf
+103.pdf
+104.pdf
+105.pdf
+
+        │
+        ▼
+
+Merged PDF:
+
+print_all.pdf
+```
+
+This ensures that the final document follows the correct box-number sequence.
+
+---
+
+## Box Tag Automation Workflow
+
+```text
+Input CSV
+    │
+    ▼
+Read CSV Data
+    │
+    ▼
+Group Data by Box_no
+    │
+    ▼
+Generate Individual Box PDFs
+    │
+    ├── Box 101.pdf
+    ├── Box 102.pdf
+    ├── Box 103.pdf
+    └── ...
+    │
+    ▼
+Filter Numeric PDF Files
+    │
+    ▼
+Sort PDFs Numerically
+    │
+    ▼
+Merge PDFs
+    │
+    ▼
+print_all.pdf
+```
+
+---
+
+## Unit Testing
+
+The Box Tag PDF Generator is also tested using **Pytest**.
+
+Test file:
+
+```text
+test_box_tag_generator.py
+```
+
+Important tests include:
+
+* Program file availability
+* Program loading
+* `box_tag_generator` class availability
+* `merge_pdf()` method availability
+* Numeric PDF filtering
+* Numeric PDF sorting
+* Ignoring non-numeric PDF files
+* PDF merger append operation
+* PDF merge order
+* Final merged PDF creation
+
+Run the tests using:
+
+```bash
+python -m pytest -v test_box_tag_generator.py
+```
+
+---
+
 # Technologies Used
 
 * Python
@@ -134,6 +324,7 @@ The actual company item codes, descriptions, filenames and business data are int
 * OpenPyXL / Excel processing
 * XlsxWriter
 * ReportLab
+* PyPDF2
 * Pytest
 * Git
 * GitHub
@@ -146,21 +337,19 @@ The actual company item codes, descriptions, filenames and business data are int
 business-process-automation/
 │
 ├── 1_invoice_generator.py
-│
 ├── 2_separate_pdf_generator.py
+├── 3_box_tag_generator.py
 │
 ├── test_1_invoice_generator.py
-│
 ├── test_2_separate_pdf_generator.py
+├── test_box_tag_generator.py
 │
 ├── README.md
-│
 ├── .gitignore
-│
 └── requirements.txt
 ```
 
-> Actual company Excel files, generated PDFs and other confidential files should not be committed to the repository.
+> Actual company Excel files, CSV files, generated PDFs and other confidential files should not be committed to the repository.
 
 ---
 
@@ -175,6 +364,7 @@ pandas
 xlsxwriter
 openpyxl
 reportlab
+PyPDF2
 pytest
 ```
 
@@ -232,9 +422,9 @@ pip install -r requirements.txt
 
 ## 4. Provide test/demo input
 
-Use a **dummy or sanitized Excel file** for development and demonstration.
+Use a **dummy or sanitized Excel/CSV file** for development and demonstration.
 
-Do not upload the original company Excel file if it contains:
+Do not upload the original company Excel or CSV files if they contain:
 
 * Customer information
 * Supplier information
@@ -244,6 +434,7 @@ Do not upload the original company Excel file if it contains:
 * Business-sensitive data
 * Confidential transaction information
 * Internal company identifiers
+* Manufacturing information
 
 ---
 
@@ -257,7 +448,7 @@ This generates the processed Excel workbook.
 
 ---
 
-## 6. Run PDF automation
+## 6. Run Invoice PDF automation
 
 After the required Excel output has been generated:
 
@@ -269,15 +460,28 @@ This generates the separate PDF documents.
 
 ---
 
+## 7. Run Box Tag automation
+
+Provide a sanitized/demo `input.csv` file and run:
+
+```bash
+python 3_box_tag_generator.py
+```
+
+This generates individual box PDFs and merges them into a single PDF.
+
+---
+
 # Unit Testing
 
 The project uses **Pytest** for automated testing.
 
-Two test files are currently included:
+Three test files are currently included:
 
 ```text
 test_1_invoice_generator.py
 test_2_separate_pdf_generator.py
+test_box_tag_generator.py
 ```
 
 ## Run all tests
@@ -292,10 +496,16 @@ python -m pytest -v
 python -m pytest -v test_1_invoice_generator.py
 ```
 
-## Run PDF automation tests
+## Run Invoice PDF automation tests
 
 ```bash
 python -m pytest -v test_2_separate_pdf_generator.py
+```
+
+## Run Box Tag automation tests
+
+```bash
+python -m pytest -v test_box_tag_generator.py
 ```
 
 ---
@@ -317,7 +527,7 @@ Tests include checks for:
 * Output worksheets
 * Worksheet data
 
-### PDF Automation
+### Invoice PDF Automation
 
 Tests include checks for:
 
@@ -330,6 +540,21 @@ Tests include checks for:
 * PDF file generation
 * PDF file validity
 * Number of generated PDFs
+
+### Box Tag Automation
+
+Tests include checks for:
+
+* Program file availability
+* Program loading
+* Required class availability
+* Required method availability
+* Numeric PDF filtering
+* Numeric PDF sorting
+* Non-numeric PDF filtering
+* PDF merger append operation
+* PDF merge order
+* Final merged PDF creation
 
 ---
 
@@ -349,6 +574,8 @@ The following information should not be committed to a public repository:
 ❌ Real pricing
 ❌ Real transaction records
 ❌ Confidential item codes
+❌ Confidential part numbers
+❌ Confidential drawing numbers
 ❌ Internal file paths
 ❌ Credentials
 ❌ API keys
@@ -377,6 +604,7 @@ The following types of files should normally remain outside the public repositor
 *.xlsx
 *.xls
 *.xlsm
+*.csv
 *.pdf
 
 .env
@@ -410,19 +638,25 @@ A typical development workflow is:
 3. Generate structured Excel output
              │
              ▼
-4. Generate PDF documents
+4. Generate invoice PDFs
              │
              ▼
-5. Run unit tests
+5. Generate box tag PDFs
              │
              ▼
-6. Review generated output
+6. Merge box tag PDFs
              │
              ▼
-7. Commit source-code changes
+7. Run unit tests
              │
              ▼
-8. Push approved code to GitHub
+8. Review generated output
+             │
+             ▼
+9. Commit source-code changes
+             │
+             ▼
+10. Push approved code to GitHub
 ```
 
 ---
