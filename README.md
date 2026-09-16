@@ -2,332 +2,23 @@
 
 ## Overview
 
-This project is a Python-based business process automation solution designed to automate repetitive data-processing and document-generation tasks.
-
-The current workflow automates the conversion of structured Excel data into organized Excel worksheets and subsequently generates separate PDF documents from those worksheets.
-
-The project is designed with a modular approach so that additional business automation processes can be added in the future.
-
----
-
-## Current Automation Workflow
-
-```text
-Input Excel File
-       │
-       ▼
-Excel Data Processing
-       │
-       ▼
-Group Data by Item Code
-       │
-       ▼
-Separate Excel Worksheets
-       │
-       ▼
-PDF Generation
-       │
-       ▼
-Separate PDF Files
-```
-
----
-
-# 1. Excel Data Separation
-
-### File
-
-```text
-1_invoice_generator.py
-```
-
-### Purpose
-
-The first automation processes an Excel input file and separates the data based on the `Item Cd` column.
-
-Instead of manually filtering and copying data into multiple worksheets, the program automatically:
-
-1. Reads the input Excel file.
-2. Identifies the `Item Cd` column.
-3. Groups records according to the item code.
-4. Cleans the item code so it can safely be used in an Excel worksheet name.
-5. Creates a separate worksheet for each item code.
-6. Writes the corresponding records into the worksheet.
-7. Generates an output Excel file.
-
-### Example
-
-The actual company Excel data is **not included in this repository**.
-
-For demonstration purposes, the process can be represented as:
-
-```text
-Input:
-
-Item Cd     Item Description     Quantity
-A100        Product A            10
-B200        Product B            20
-A100        Product A            15
-C300        Product C            5
-```
-
-The automation produces:
-
-```text
-output_invoice.xlsx
-
-├── Part_no_A100
-├── Part_no_B200
-└── Part_no_C300
-```
-
-Each worksheet contains only the records belonging to that item code.
-
----
-
-# 2. Separate PDF Generation
-
-### File
-
-```text
-2_separate_pdf_generator.py
-```
-
-### Purpose
-
-The second automation takes the generated Excel workbook and creates a separate PDF document for each worksheet.
-
-The program automatically:
-
-1. Reads the generated Excel workbook.
-2. Identifies all worksheets.
-3. Reads each worksheet into a Pandas DataFrame.
-4. Extracts the item code and item description.
-5. Creates a PDF document.
-6. Adds the worksheet data to the PDF.
-7. Uses landscape A4 page formatting.
-8. Creates a date-based output directory.
-9. Saves each generated PDF separately.
-
-### Output Structure
-
-The actual company output is not included in this repository.
-
-The generated structure is conceptually:
-
-```text
-invoice_pdf_YYYY-MM-DD/
-
-├── ITEM_CODE_ITEM_DESCRIPTION.pdf
-├── ITEM_CODE_ITEM_DESCRIPTION.pdf
-└── ITEM_CODE_ITEM_DESCRIPTION.pdf
-```
-
-The actual company item codes, descriptions, filenames and business data are intentionally excluded.
-
----
-
-# 3. Box Tag PDF Generation and PDF Merging
-
-### File
-
-```text
-box_tag_generator.py
-```
-
-### Purpose
-
-The third automation processes box-wise data from a CSV file and generates a separate PDF box tag for each `Box_no`.
-
-The program automatically:
-
-1. Reads the input CSV file.
-2. Groups the data using the `Box_no` column.
-3. Creates a separate PDF for each box.
-4. Adds the required part information to the PDF.
-5. Adds a verification field to the generated box tag.
-6. Uses landscape A4 page formatting.
-7. Creates an output directory for the generated PDFs.
-8. Generates PDF filenames based on the box number.
-9. Merges all generated box PDFs into one PDF file.
-10. Sorts the box PDFs numerically before merging.
-
-### Input Data
-
-The actual company CSV file is **not included in this repository**.
-
-For demonstration purposes, the input structure can be represented as:
-
-```text
-Box_no    Part_name       Drg_no       Quantity    Dispatched_date
-101       Sample Part A   DRG-001      10          2026-09-01
-101       Sample Part B   DRG-002      5           2026-09-01
-102       Sample Part C   DRG-003      8           2026-09-02
-103       Sample Part D   DRG-004      12          2026-09-03
-```
-
-The values above are **dummy data only** and do not represent actual company information.
-
----
-
-## PDF Generation
-
-For every unique `Box_no`, the program creates a separate PDF.
-
-Conceptually:
-
-```text
-input.csv
-    │
-    ▼
-Group by Box_no
-    │
-    ├── Box 101 → 101.pdf
-    ├── Box 102 → 102.pdf
-    └── Box 103 → 103.pdf
-```
-
-Each generated PDF contains information such as:
-
-```text
-Box No: 101
-
-Part_name | Drg_no | Quantity | Dispatched_date | Verified By
-```
-
-The generated PDFs are stored inside:
-
-```text
-pdf_output_1/
-```
-
-The actual output directory name may vary depending on the version of the automation being used.
-
----
-
-## PDF Merging
-
-The `merge_pdf()` functionality combines the individual box PDFs into a single PDF.
-
-Before merging, the program:
-
-1. Finds PDF files in the output directory.
-2. Selects PDFs whose filenames contain numeric box numbers.
-3. Ignores non-numeric PDF filenames.
-4. Sorts the PDFs according to their numeric box number.
-5. Appends the PDFs in that order.
-6. Creates a final merged PDF.
-
-Example:
-
-```text
-Individual PDFs:
-
-103.pdf
-101.pdf
-102.pdf
-105.pdf
-104.pdf
-
-        │
-        ▼
-
-Numeric sorting:
-
-101.pdf
-102.pdf
-103.pdf
-104.pdf
-105.pdf
-
-        │
-        ▼
-
-Merged PDF:
-
-print_all.pdf
-```
-
-This ensures that the final document follows the correct box-number sequence.
-
----
-
-## Box Tag Automation Workflow
-
-```text
-Input CSV
-    │
-    ▼
-Read CSV Data
-    │
-    ▼
-Group Data by Box_no
-    │
-    ▼
-Generate Individual Box PDFs
-    │
-    ├── Box 101.pdf
-    ├── Box 102.pdf
-    ├── Box 103.pdf
-    └── ...
-    │
-    ▼
-Filter Numeric PDF Files
-    │
-    ▼
-Sort PDFs Numerically
-    │
-    ▼
-Merge PDFs
-    │
-    ▼
-print_all.pdf
-```
-
----
-
-## Unit Testing
-
-The Box Tag PDF Generator is also tested using **Pytest**.
-
-Test file:
-
-```text
-test_box_tag_generator.py
-```
-
-Important tests include:
-
-* Program file availability
-* Program loading
-* `box_tag_generator` class availability
-* `merge_pdf()` method availability
-* Numeric PDF filtering
-* Numeric PDF sorting
-* Ignoring non-numeric PDF files
-* PDF merger append operation
-* PDF merge order
-* Final merged PDF creation
-
-Run the tests using:
-
-```bash
-python -m pytest -v test_box_tag_generator.py
-```
-
----
-
-# Technologies Used
-
-* Python
-* Pandas
-* OpenPyXL / Excel processing
-* XlsxWriter
-* ReportLab
-* PyPDF2
-* Pytest
-* Git
-* GitHub
+This project is a Python-based **Business Process Automation** solution designed to automate repetitive Excel data-processing and document-generation tasks.
+
+The automation reduces manual work involved in:
+
+* Processing structured Excel data
+* Separating data based on item/part information
+* Generating organized Excel worksheets
+* Generating separate PDF documents
+* Creating box/tag-related documents
+* Generating index PDFs
+* Organizing PDFs into their associated folders
+* Merging multiple PDFs into a final document
+* Validating the automation through unit testing
+
+The project follows a modular approach so that additional business automation processes can be added in the future.
+
+> **Confidentiality:** Actual company, client, customer, supplier, transaction, pricing, item-code and document data are intentionally excluded from this repository.
 
 ---
 
@@ -338,45 +29,357 @@ business-process-automation/
 │
 ├── 1_invoice_generator.py
 ├── 2_separate_pdf_generator.py
-├── 3_box_tag_generator.py
+├── box_tag_generator.py
+├── final_index_page_generator.py
 │
 ├── test_1_invoice_generator.py
 ├── test_2_separate_pdf_generator.py
 ├── test_box_tag_generator.py
+├── test_final_index_page_generator.py
 │
 ├── README.md
+├── requirements.txt
 ├── .gitignore
-└── requirements.txt
+│
+├── dispatched_details.xlsx       # Local/company input - NOT committed
+├── output_file.xlsx              # Generated output - NOT committed
+│
+├── input_folder/                 # Local/company files - NOT committed
+│   ├── <part_no_1>/
+│   │   ├── A.pdf
+│   │   └── other.pdf
+│   │
+│   └── <part_no_2>/
+│       ├── A.pdf
+│       └── other.pdf
+│
+├── index_pdf/                    # Generated index PDFs - NOT committed
+│   ├── <part_no_1>.pdf
+│   └── <part_no_2>.pdf
+│
+└── venv/                         # Local virtual environment - NOT committed
 ```
 
-> Actual company Excel files, CSV files, generated PDFs and other confidential files should not be committed to the repository.
+---
+
+# Automation Workflow
+
+The overall business automation workflow can be represented as:
+
+```text
+                    Input Excel / Business Data
+                              │
+                              ▼
+                 ┌─────────────────────────┐
+                 │ 1_invoice_generator.py  │
+                 │                         │
+                 │ Excel Data Processing   │
+                 │ Data Separation         │
+                 └────────────┬────────────┘
+                              │
+                              ▼
+                    Organized Excel File
+                              │
+                              ▼
+              ┌──────────────────────────────┐
+              │ 2_separate_pdf_generator.py │
+              │                              │
+              │ Excel → Separate PDFs        │
+              └──────────────┬───────────────┘
+                             │
+                             ▼
+                     Separate PDF Files
+                             │
+                             ▼
+                  ┌──────────────────────┐
+                  │ box_tag_generator.py │
+                  │                      │
+                  │ Box / Tag Generation │
+                  └──────────┬───────────┘
+                             │
+                             ▼
+                      Box / Tag Documents
+                             │
+                             ▼
+              ┌──────────────────────────────┐
+              │ final_index_page_generator │
+              │                              │
+              │ Index PDF Generation        │
+              │ PDF Organization            │
+              │ PDF Merging                 │
+              └──────────────┬───────────────┘
+                             │
+                             ▼
+                       Final PDF Output
+```
+
+---
+
+# 1. Excel Data Processing
+
+## File
+
+```text
+1_invoice_generator.py
+```
+
+## Purpose
+
+The first automation processes the input Excel file and separates the records according to the required business identifier.
+
+The program automates tasks that would otherwise require manually filtering and copying Excel data.
+
+The process generally includes:
+
+1. Reading the input Excel file.
+2. Identifying the required column.
+3. Grouping records according to the business identifier.
+4. Cleaning values before using them as worksheet names.
+5. Creating separate worksheets.
+6. Writing the corresponding records to each worksheet.
+7. Generating the processed Excel workbook.
+
+### Example
+
+Actual company data is not included in this repository.
+
+A sanitized example:
+
+```text
+Input Excel
+
+Item Cd    Description       Quantity
+A100       Product A         10
+B200       Product B         20
+A100       Product A         15
+C300       Product C         5
+```
+
+The automation can produce:
+
+```text
+output_invoice.xlsx
+
+├── Part_no_A100
+├── Part_no_B200
+└── Part_no_C300
+```
+
+Each worksheet contains the records belonging to the corresponding item code.
+
+---
+
+# 2. Separate PDF Generation
+
+## File
+
+```text
+2_separate_pdf_generator.py
+```
+
+## Purpose
+
+The second automation converts the processed Excel workbook into separate PDF documents.
+
+The program automatically:
+
+1. Reads the generated Excel workbook.
+2. Identifies the worksheets.
+3. Reads worksheet data.
+4. Processes the required fields.
+5. Creates PDF documents.
+6. Formats the PDF using the required page layout.
+7. Saves the PDFs separately.
+8. Organizes the generated documents into the required output structure.
+
+### Conceptual Flow
+
+```text
+Processed Excel
+      │
+      ▼
+Read Worksheets
+      │
+      ▼
+Process Worksheet Data
+      │
+      ▼
+Create PDF
+      │
+      ▼
+Separate PDF Files
+```
+
+Actual company item codes, descriptions and business data are intentionally excluded.
+
+---
+
+# 3. Box / Tag Generation
+
+## File
+
+```text
+box_tag_generator.py
+```
+
+## Purpose
+
+The third automation handles the generation of box/tag-related documents required as part of the business process.
+
+The automation is designed to reduce manual document preparation and maintain consistency in the generated documents.
+
+The general process is:
+
+```text
+Input / Processed Data
+        │
+        ▼
+Read Required Information
+        │
+        ▼
+Prepare Box / Tag Data
+        │
+        ▼
+Generate Required Documents
+        │
+        ▼
+Box / Tag Output
+```
+
+The actual company-specific box information, identifiers, labels and document contents are not included in this repository.
+
+---
+
+# 4. Final Index Page and PDF Processing
+
+## File
+
+```text
+final_index_page_generator.py
+```
+
+## Purpose
+
+The final automation performs the final PDF-processing stage of the workflow.
+
+It performs multiple operations:
+
+1. Processes dispatched Excel details.
+2. Groups data according to `Part no`.
+3. Creates separate Excel worksheets.
+4. Generates an index PDF for each part number.
+5. Places the generated index PDF into the corresponding folder.
+6. Renames the index PDF to `A.pdf`.
+7. Reads PDF files inside each associated folder.
+8. Sorts the PDF files.
+9. Merges the PDFs.
+10. Generates a final merged PDF for each folder.
+
+---
+
+## Final Index Workflow
+
+```text
+dispatched_details.xlsx
+          │
+          ▼
+Group by Part no
+          │
+          ▼
+output_file.xlsx
+          │
+          ▼
+Generate Index PDFs
+          │
+          ▼
+index_pdf/
+          │
+          ▼
+Find Associated Folder
+          │
+          ▼
+Move Index PDF
+          │
+          ▼
+A.pdf
+          │
+          ▼
+Collect PDFs in Folder
+          │
+          ▼
+Sort PDF Files
+          │
+          ▼
+Merge PDFs
+          │
+          ▼
+<folder_name>_merged.pdf
+```
+
+---
+
+# PDF Organization
+
+The final processing stage uses a folder structure similar to:
+
+```text
+input_folder/
+│
+├── <part_no_1>/
+│   ├── A.pdf
+│   ├── document_1.pdf
+│   ├── document_2.pdf
+│   └── <part_no_1>_merged.pdf
+│
+└── <part_no_2>/
+    ├── A.pdf
+    ├── document_1.pdf
+    ├── document_2.pdf
+    └── <part_no_2>_merged.pdf
+```
+
+The actual company folder names and PDF documents are intentionally excluded.
+
+---
+
+# Technologies Used
+
+The project uses the following technologies and Python libraries:
+
+* **Python**
+* **Pandas**
+* **OpenPyXL**
+* **XlsxWriter**
+* **ReportLab**
+* **PyPDF2**
+* **Pytest**
+* **Git**
+* **GitHub**
 
 ---
 
 # Requirements
 
-Python 3.12 or compatible Python 3 version.
+Recommended Python version:
 
-Required packages include:
+```text
+Python 3.12
+```
+
+Required packages:
 
 ```text
 pandas
-xlsxwriter
 openpyxl
+xlsxwriter
 reportlab
 PyPDF2
 pytest
 ```
 
-Install dependencies using:
-
-```bash
-pip install -r requirements.txt
-```
-
 ---
 
-# Quick Start
+# Installation
 
 ## 1. Clone the repository
 
@@ -392,19 +395,27 @@ cd business-process-automation
 
 ---
 
-## 2. Create a virtual environment
+## 2. Create a Virtual Environment
+
+Linux/macOS:
 
 ```bash
 python3 -m venv venv
 ```
 
-Activate it on Linux/macOS:
+Activate:
 
 ```bash
 source venv/bin/activate
 ```
 
-On Windows:
+Windows:
+
+```bash
+python -m venv venv
+```
+
+Activate:
 
 ```bash
 venv\Scripts\activate
@@ -412,7 +423,7 @@ venv\Scripts\activate
 
 ---
 
-## 3. Install dependencies
+## 3. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -420,163 +431,240 @@ pip install -r requirements.txt
 
 ---
 
-## 4. Provide test/demo input
+# Running the Automation
 
-Use a **dummy or sanitized Excel/CSV file** for development and demonstration.
+## Excel Processing
 
-Do not upload the original company Excel or CSV files if they contain:
-
-* Customer information
-* Supplier information
-* Employee information
-* Internal item codes
-* Pricing information
-* Business-sensitive data
-* Confidential transaction information
-* Internal company identifiers
-* Manufacturing information
-
----
-
-## 5. Run Excel automation
+Run:
 
 ```bash
 python 1_invoice_generator.py
 ```
 
-This generates the processed Excel workbook.
+This processes the input Excel data and generates the required Excel output.
 
 ---
 
-## 6. Run Invoice PDF automation
+## PDF Generation
 
-After the required Excel output has been generated:
+Run:
 
 ```bash
 python 2_separate_pdf_generator.py
 ```
 
-This generates the separate PDF documents.
+This generates the required PDF documents from the processed Excel data.
 
 ---
 
-## 7. Run Box Tag automation
+## Box / Tag Generation
 
-Provide a sanitized/demo `input.csv` file and run:
+Run:
 
 ```bash
-python 3_box_tag_generator.py
+python box_tag_generator.py
 ```
 
-This generates individual box PDFs and merges them into a single PDF.
+This executes the box/tag document generation process.
+
+---
+
+## Final PDF Processing
+
+Run:
+
+```bash
+python final_index_page_generator.py
+```
+
+This performs the final index generation, PDF organization and PDF merging workflow.
 
 ---
 
 # Unit Testing
 
-The project uses **Pytest** for automated testing.
+The project uses **Pytest** for automated unit testing.
 
-Three test files are currently included:
+Each major automation module has a corresponding test file.
 
 ```text
+1_invoice_generator.py
+        │
+        ▼
 test_1_invoice_generator.py
+
+2_separate_pdf_generator.py
+        │
+        ▼
 test_2_separate_pdf_generator.py
+
+box_tag_generator.py
+        │
+        ▼
 test_box_tag_generator.py
+
+final_index_page_generator.py
+        │
+        ▼
+test_final_index_page_generator.py
 ```
 
-## Run all tests
+---
+
+# Run All Tests
+
+From the project root:
 
 ```bash
 python -m pytest -v
 ```
 
-## Run Excel automation tests
+---
+
+# Run Individual Test Files
+
+### Excel automation tests
 
 ```bash
 python -m pytest -v test_1_invoice_generator.py
 ```
 
-## Run Invoice PDF automation tests
+### PDF generation tests
 
 ```bash
 python -m pytest -v test_2_separate_pdf_generator.py
 ```
 
-## Run Box Tag automation tests
+### Box/tag tests
 
 ```bash
 python -m pytest -v test_box_tag_generator.py
+```
+
+### Final PDF processing tests
+
+```bash
+python -m pytest -v test_final_index_page_generator.py
 ```
 
 ---
 
 # Testing Approach
 
-The tests verify important parts of the automation workflow.
+The unit tests are designed to validate individual functions and important workflow conditions without requiring real company data.
 
-### Excel Automation
+## Excel Automation Tests
 
-Tests include checks for:
+Tests may validate:
 
-* Input Excel file availability
-* Excel file readability
+* Input file handling
+* Excel readability
 * Required columns
-* Valid input data
-* Program execution
-* Output workbook generation
-* Output worksheets
-* Worksheet data
+* Data grouping
+* Worksheet creation
+* Correct worksheet data
+* Output file creation
+* Invalid or missing input handling
 
-### Invoice PDF Automation
+---
 
-Tests include checks for:
+## PDF Generation Tests
 
-* Input Excel availability
-* Excel workbook readability
-* Worksheet availability
-* Required columns
-* Program execution
-* PDF output directory creation
-* PDF file generation
-* PDF file validity
-* Number of generated PDFs
+Tests may validate:
 
-### Box Tag Automation
+* Excel workbook reading
+* Worksheet processing
+* PDF creation
+* PDF output path
+* PDF file existence
+* PDF validity
+* PDF page generation
+* Error handling
 
-Tests include checks for:
+---
 
-* Program file availability
-* Program loading
-* Required class availability
-* Required method availability
-* Numeric PDF filtering
-* Numeric PDF sorting
-* Non-numeric PDF filtering
-* PDF merger append operation
-* PDF merge order
-* Final merged PDF creation
+## Box / Tag Tests
+
+Tests may validate:
+
+* Input data handling
+* Required fields
+* Box/tag generation
+* Output document creation
+* File naming
+* Invalid input handling
+* Output validation
+
+---
+
+## Final PDF Processing Tests
+
+Tests include validation of:
+
+* Excel grouping
+* Part number worksheets
+* Index PDF generation
+* PDF validity
+* Index PDF movement
+* Missing associated folders
+* Empty PDF folders
+* Multiple PDF merging
+* Merged PDF page count
+* Corrupted PDF handling
+
+---
+
+# Test Data
+
+Unit tests should use **temporary or sanitized test data** rather than actual company information.
+
+For example:
+
+```python
+data = pd.DataFrame({
+    "Part no": ["P001", "P001"],
+    "Item": ["Test A", "Test B"],
+    "Quantity": [10, 20]
+})
+```
+
+This allows the automation to be tested without exposing business information.
+
+Pytest's temporary directories can also be used:
+
+```python
+tmp_path
+```
+
+This prevents tests from modifying actual project files.
 
 ---
 
 # Data Privacy and Security
 
-This repository is intended to contain **source code and sanitized demonstration data only**.
-
-The following information should not be committed to a public repository:
+This repository is intended to contain:
 
 ```text
-❌ Real company name
-❌ Client name
+✓ Source code
+✓ Unit tests
+✓ Sanitized examples
+✓ Generic documentation
+✓ Requirements
+```
+
+It should not contain:
+
+```text
+❌ Real company data
 ❌ Customer information
 ❌ Supplier information
 ❌ Employee information
 ❌ Real invoices
-❌ Real pricing
 ❌ Real transaction records
+❌ Pricing information
 ❌ Confidential item codes
-❌ Confidential part numbers
-❌ Confidential drawing numbers
-❌ Internal file paths
+❌ Internal identifiers
+❌ Internal documents
 ❌ Credentials
 ❌ API keys
 ❌ Passwords
@@ -584,27 +672,16 @@ The following information should not be committed to a public repository:
 ❌ Private configuration files
 ```
 
-Use:
-
-```text
-✓ Dummy data
-✓ Sanitized examples
-✓ Generic filenames
-✓ Environment variables for secrets
-✓ .gitignore for local/company files
-```
-
 ---
 
 # Files That Should Not Be Committed
 
-The following types of files should normally remain outside the public repository:
+The following files should normally remain outside the public GitHub repository:
 
 ```text
 *.xlsx
 *.xls
 *.xlsm
-*.csv
 *.pdf
 
 .env
@@ -620,72 +697,205 @@ output/
 logs/
 ```
 
-The `.gitignore` file should be configured according to the actual project requirements.
+Company-specific input and output folders should also be excluded.
+
+---
+
+# Recommended `.gitignore`
+
+A basic `.gitignore` can contain:
+
+```gitignore
+# Virtual environment
+venv/
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Pytest
+.pytest_cache/
+.hypothesis/
+
+# Excel files
+*.xlsx
+*.xls
+*.xlsm
+
+# PDF files
+*.pdf
+
+# Output directories
+output/
+index_pdf/
+input_folder/
+
+# Logs
+*.log
+logs/
+
+# Environment / secrets
+.env
+*.key
+*.pem
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+```
+
+If a particular Excel/PDF file is intentionally required as a sanitized public example, it can be explicitly allowed instead of globally excluding it.
 
 ---
 
 # Development Workflow
 
-A typical development workflow is:
+The development process can be represented as:
 
 ```text
-1. Receive / prepare sanitized input
-             │
-             ▼
-2. Process Excel data
-             │
-             ▼
-3. Generate structured Excel output
-             │
-             ▼
-4. Generate invoice PDFs
-             │
-             ▼
-5. Generate box tag PDFs
-             │
-             ▼
-6. Merge box tag PDFs
-             │
-             ▼
-7. Run unit tests
-             │
-             ▼
-8. Review generated output
-             │
-             ▼
-9. Commit source-code changes
-             │
-             ▼
-10. Push approved code to GitHub
+Prepare Sanitized Input
+          │
+          ▼
+Process Excel Data
+          │
+          ▼
+Generate Excel Output
+          │
+          ▼
+Generate Separate PDFs
+          │
+          ▼
+Generate Box / Tag Documents
+          │
+          ▼
+Generate Index PDFs
+          │
+          ▼
+Organize PDFs
+          │
+          ▼
+Merge PDFs
+          │
+          ▼
+Run Unit Tests
+          │
+          ▼
+Review Output
+          │
+          ▼
+Commit Source Code
+          │
+          ▼
+Push to GitHub
 ```
+
+---
+
+# Git Workflow
+
+Before committing code, verify that confidential files are not included.
+
+Check repository status:
+
+```bash
+git status
+```
+
+Add source files:
+
+```bash
+git add *.py
+git add README.md
+git add requirements.txt
+git add .gitignore
+```
+
+Commit:
+
+```bash
+git commit -m "Add business process automation"
+```
+
+Push:
+
+```bash
+git push
+```
+
+Before pushing, verify:
+
+```bash
+git status
+```
+
+and inspect the files being committed.
+
+---
+
+# Project Benefits
+
+The automation provides several benefits:
+
+* Reduces repetitive manual Excel operations
+* Reduces manual document generation
+* Provides consistent output formatting
+* Reduces manual PDF organization
+* Automates PDF merging
+* Improves repeatability
+* Makes the process easier to test
+* Provides modular Python components
+* Allows future automation modules to be added
 
 ---
 
 # Future Improvements
 
-The project can be extended with additional automation modules such as:
+Potential future improvements include:
 
-* Automated email generation
-* Automated email attachments
-* PDF validation
-* Input data validation
-* Error logging
-* Configuration management
+* Centralized configuration
+* Improved input validation
+* Structured error handling
+* Production-grade logging
 * Database integration
 * REST API integration
-* Automated report generation
-* Scheduled processing
-* Improved exception handling
-* Production logging
-* Centralized configuration
+* Automated email generation
+* Automated email attachments
+* PDF content validation
+* Configuration through environment variables
+* Scheduled automation
 * Automated deployment
+* CI/CD integration
+* GitHub Actions for automated testing
+* Improved test coverage
+* User interface for non-technical users
 
 ---
 
 # Important Note
 
-This repository contains a generalized representation of a business automation workflow.
+This repository provides a generalized representation of a business process automation solution.
 
-Actual company-specific implementation details, business rules, confidential data, customer information and internal documents are intentionally excluded for security and confidentiality reasons.
+Company-specific implementation details, business rules, confidential information, customer data, supplier data, transaction information, internal documents and proprietary identifiers are intentionally excluded.
 
-The repository demonstrates the **technical approach and automation capability**, rather than exposing proprietary company information.
+The purpose of this repository is to demonstrate the **technical architecture, automation approach, Python development practices and testing methodology** without exposing confidential business information.
+
+---
+
+## Author
+
+**Om Suryakant Ugale**
+
+Python Developer | Automation | AI/ML | Software Development
+
+---
+
+## License
+
+Add the appropriate license based on the ownership and distribution requirements of the project.
+
+If this is company-owned or client-owned software, do not add an open-source license without authorization.
