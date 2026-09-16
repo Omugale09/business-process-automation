@@ -153,4 +153,3 @@ for folder_name in os.listdir(input_folder):
         merge_pdfs_in_folder(folder_path)
 
 print("PDF merging completed.----Done---- ")
-hi 
